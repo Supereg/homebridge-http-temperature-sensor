@@ -24,19 +24,21 @@ function HTTP_TEMPERATURE(log, config) {
     this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature)
         .on("get", this.getTemperature.bind(this));
 
-    this.notificationID = config.notificationID || this.name.toLowerCase().replace(" ", "-");
+    this.notificationID = config.notificationID;
     this.notificationPassword = config.notificationPassword;
 
-    api.on("didFinishLaunching", function () {
-        if (api.notificationRegistration && typeof api.notificationRegistration === "function") {
-            try {
-                api.notificationRegistration(this.notificationID, this.handleNotification.bind(this), this.notificationPassword);
-                this.log("Detected running notification server. Registered successfully!");
-            } catch (error) {
-                this.log("Could not register notification handler. ID '" + this.notificationID + "' is already taken!")
+    if (this.notificationID) {
+        api.on("didFinishLaunching", function () {
+            if (api.notificationRegistration && typeof api.notificationRegistration === "function") {
+                try {
+                    api.notificationRegistration(this.notificationID, this.handleNotification.bind(this), this.notificationPassword);
+                    this.log("Detected running notification server. Registered successfully!");
+                } catch (error) {
+                    this.log("Could not register notification handler. ID '" + this.notificationID + "' is already taken!")
+                }
             }
-        }
-    }.bind(this));
+        }.bind(this));
+    }
 }
 
 HTTP_TEMPERATURE.prototype = {
