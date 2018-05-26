@@ -1,5 +1,8 @@
 # homebridge-http-temperature-sensor
 
+This [Homebridge](https://github.com/nfarina/homebridge) plugin can be used integrate your temperature sensor which has a 
+http api into HomeKit.
+
 ## Configuration
 
 ```json
