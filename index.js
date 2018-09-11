@@ -2,7 +2,11 @@
 
 let Service, Characteristic, api;
 
-const request = require("request");
+const configParser = require("homebridge-http-base").configParser;
+const http = require("homebridge-http-base").http;
+const notifications = require("homebridge-http-base").notifications;
+const PullTimer = require("homebridge-http-base").PullTimer;
+
 const packageJSON = require("./package.json");
 
 module.exports = function (homebridge) {
@@ -18,27 +22,36 @@ function HTTP_TEMPERATURE(log, config) {
     this.log = log;
     this.name = config.name;
 
-    this.getUrl = config.getUrl;
+    if (config.getUrl) {
+        try {
+            this.getUrl = configParser.parseUrlProperty(config.getUrl);
+        } catch (error) {
+            this.log.warn("Error occurred while parsing 'getUrl': " + error.message);
+            this.log.warn("Aborting...");
+            return;
+        }
+    }
+    else {
+        this.log.warn("Property 'getUrl' is required!");
+        this.log.warn("Aborting...");
+        return;
+    }
 
     this.homebridgeService = new Service.TemperatureSensor(this.name);
     this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature)
         .on("get", this.getTemperature.bind(this));
 
-    this.notificationID = config.notificationID;
-    this.notificationPassword = config.notificationPassword;
-
-    if (this.notificationID) {
-        api.on("didFinishLaunching", function () {
-            if (api.notificationRegistration && typeof api.notificationRegistration === "function") {
-                try {
-                    api.notificationRegistration(this.notificationID, this.handleNotification.bind(this), this.notificationPassword);
-                    this.log("Detected running notification server. Registered successfully!");
-                } catch (error) {
-                    this.log("Could not register notification handler. ID '" + this.notificationID + "' is already taken!")
-                }
-            }
-        }.bind(this));
+    /** @namespace config.pullInterval */
+    if (config.pullInterval) {
+        this.pullTimer = new PullTimer(log, config.pullInterval, this.getTemperature.bind(this), value => {
+            this.homebridgeService.setCharacteristic(Characteristic.CurrentTemperature, value);
+        });
+        this.pullTimer.start();
     }
+
+    /** @namespace config.notificationPassword */
+    /** @namespace config.notificationID */
+    notifications.enqueueNotificationRegistrationIfDefined(api, log, config.notificationID, config.notificationPassword, this.handleNotification.bind(this));
 }
 
 HTTP_TEMPERATURE.prototype = {
@@ -63,6 +76,7 @@ HTTP_TEMPERATURE.prototype = {
     handleNotification: function(body) {
         const value = body.value;
 
+        /** @namespace body.characteristic */
         let characteristic;
         switch (body.characteristic) {
             case "CurrentTemperature":
@@ -78,42 +92,25 @@ HTTP_TEMPERATURE.prototype = {
     },
 
     getTemperature: function (callback) {
-        this._doRequest("getTemperature", this.getUrl, "GET", "getUrl", callback, function (body) {
-            const temperature = parseFloat(body);
-            this.log("temperature is currently at %s", temperature);
+        http.httpRequest(this.getUrl, (error, response, body) => {
+            if (this.pullTimer)
+                this.pullTimer.resetTimer();
 
-            callback(null, temperature);
-        }.bind(this))
+            if (error) {
+                this.log("getTemperature() failed: %s", error.message);
+                callback(error);
+            }
+            else if (response.statusCode !== 200) {
+                this.log("getTemperature() returned http error: %s", response.statusCode);
+                callback(new Error("Got http error code " + response.statusCode));
+            }
+            else {
+                const temperature = parseFloat(body);
+                this.log("temperature is currently at %s", temperature);
+
+                callback(null, temperature);
+            }
+        });
     },
-
-    _doRequest: function (methodName, url, httpMethod, urlName, callback, successCallback) {
-        if (!url) {
-            this.log.warn("Ignoring " + methodName + "() request, '" + urlName + "' is not defined!");
-            callback(new Error("No '" + urlName + "' defined!"));
-            return;
-        }
-
-        request(
-            {
-                url: url,
-                body: "",
-                method: httpMethod,
-                rejectUnauthorized: false
-            },
-            function (error, response, body) {
-                if (error) {
-                    this.log(methodName + "() failed: %s", error.message);
-                    callback(error);
-                }
-                else if (response.statusCode !== 200) {
-                    this.log(methodName + "() returned http error: %s", response.statusCode);
-                    callback(new Error("Got http error code " + response.statusCode));
-                }
-                else {
-                    successCallback(body);
-                }
-            }.bind(this)
-        );
-    }
 
 };
