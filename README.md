@@ -40,7 +40,7 @@ The configuration can contain the following properties:
 * `name` \<string\> **required**: Defines the name which is later displayed in HomeKit
 * `getUrl` \<string |  [urlObject](#urlobject)\> **required**: Defines the url 
 (and other properties when using an urlObject) to query the current temperature (in celsius) from the sensor. 
-It currently expects the http server to return a float ranging from 0-100 (step 0.1) leaving out any html markup.
+Expects JSON formatted response from server, and takes the value defined in config.json of Homebridge (for example `status.temperature` for `[{"status":{"temperature":"12"}}]`
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin 
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
 

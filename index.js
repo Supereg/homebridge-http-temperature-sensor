@@ -65,7 +65,7 @@ HTTP_TEMPERATURE.prototype = {
         const informationService = new Service.AccessoryInformation();
 
         informationService
-            .setCharacteristic(Characteristic.Manufacturer, "Andreas Bauer")
+            .setCharacteristic(Characteristic.Manufacturer, "Andreas Bauer / 0101")
             .setCharacteristic(Characteristic.Model, "HTTP Temperature Sensor")
             .setCharacteristic(Characteristic.SerialNumber, "TS01")
             .setCharacteristic(Characteristic.FirmwareRevision, packageJSON.version);
@@ -105,8 +105,12 @@ HTTP_TEMPERATURE.prototype = {
                 callback(new Error("Got http error code " + response.statusCode));
             }
             else {
-                const temperature = parseFloat(body);
-                this.log("temperature is currently at %s", temperature);
+                var json = body;
+                var json = json.substring(1, json.length - 1);
+                var parsedJSON = JSON.parse(json)
+                var conf = config.jsonValue // Value from config here
+                var temperature = parsedJSON.conf
+                // this.log("Temperature is currently at %s", temperature);
 
                 callback(null, temperature);
             }
