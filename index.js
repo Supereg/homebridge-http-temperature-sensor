@@ -88,7 +88,8 @@ HTTP_TEMPERATURE.prototype = {
                 return;
         }
 
-        this.log("Updating '" + body.characteristic + "' to new value: " + body.value);
+        if (this.debug)
+            this.log("Updating '" + body.characteristic + "' to new value: " + body.value);
         this.homebridgeService.setCharacteristic(characteristic, value);
     },
 
