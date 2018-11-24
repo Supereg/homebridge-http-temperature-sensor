@@ -43,6 +43,7 @@ The configuration can contain the following properties:
 It currently expects the http server to return a float ranging from 0-100 (step 0.1) leaving out any html markup.
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin 
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
+* `debug` \<boolean\> **optional**: Enable debug mode and write more logs.  
 
 Below are two example configurations. One is using a simple string url and the other is using a simple urlObject.  
 Both configs can be used for a basic plugin configuration.
