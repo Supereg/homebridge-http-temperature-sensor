@@ -21,6 +21,7 @@ module.exports = function (homebridge) {
 function HTTP_TEMPERATURE(log, config) {
     this.log = log;
     this.name = config.name;
+    this.debug = config.debug || false;
 
     if (config.getUrl) {
         try {
@@ -106,7 +107,8 @@ HTTP_TEMPERATURE.prototype = {
             }
             else {
                 const temperature = parseFloat(body);
-                this.log("temperature is currently at %s", temperature);
+                if (this.debug)
+                    this.log("Temperature is currently at %s", temperature);
 
                 callback(null, temperature);
             }
