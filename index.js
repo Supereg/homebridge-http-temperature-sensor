@@ -40,6 +40,10 @@ function HTTP_TEMPERATURE(log, config) {
 
     this.homebridgeService = new Service.TemperatureSensor(this.name);
     this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature)
+        .setProps({
+                    minValue: -100,
+                    maxValue: 100
+                })
         .on("get", this.getTemperature.bind(this));
 
     /** @namespace config.pullInterval */
