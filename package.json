@@ -30,7 +30,6 @@
     "homebridge-http-base": "1.0.0"
   },
   "devDependencies": {
-    "hap-nodejs": "^0.4.47",
     "semantic-release": "^15.13.2"
   },
   "scripts": {
