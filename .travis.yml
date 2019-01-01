@@ -1,0 +1,23 @@
+language: node_js
+
+node_js:
+  - stable
+
+cache:
+  directories:
+  - node_modules
+
+install: npm install # Temporary fix to make it work with Travis (npm ci fails on major release update)
+
+jobs:
+  include:
+    # Define the release stage that runs semantic-release
+    - stage: release
+      node_js: lts/*
+      # No unittests yet.
+      script: skip
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script:
+          - npx semantic-release

@@ -1,13 +1,33 @@
+// ISC License - Copyright 2018, Sander van Woensel
+
 "use strict";
 
+// -----------------------------------------------------------------------------
+// Module variables
+// -----------------------------------------------------------------------------
 let Service, Characteristic, api;
+
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
 
 const configParser = require("homebridge-http-base").configParser;
 const http = require("homebridge-http-base").http;
 const notifications = require("homebridge-http-base").notifications;
 const PullTimer = require("homebridge-http-base").PullTimer;
 
-const packageJSON = require("./package.json");
+const PACKAGE_JSON = require('./package.json');
+const MANUFACTURER = PACKAGE_JSON.author.name;
+const SERIAL_NUMBER = '001';
+const MODEL = PACKAGE_JSON.name;
+const FIRMWARE_REVISION = PACKAGE_JSON.version;
+
+const MIN_LUX_VALUE = 0.0;
+const MAX_LUX_VALUE =  Math.pow(2, 16) - 1.0;
+
+// -----------------------------------------------------------------------------
+// Exports
+// -----------------------------------------------------------------------------
 
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
@@ -15,10 +35,14 @@ module.exports = function (homebridge) {
 
     api = homebridge;
 
-    homebridge.registerAccessory("homebridge-http-temperature-sensor", "HTTP-TEMPERATURE", HTTP_TEMPERATURE);
+    homebridge.registerAccessory(MODEL, "HttpAmbientLightSensor", HttpAmbientLightSensor);
 };
 
-function HTTP_TEMPERATURE(log, config) {
+// -----------------------------------------------------------------------------
+// Module public functions
+// -----------------------------------------------------------------------------
+
+function HttpAmbientLightSensor(log, config) {
     this.log = log;
     this.name = config.name;
     this.debug = config.debug || false;
@@ -38,18 +62,18 @@ function HTTP_TEMPERATURE(log, config) {
         return;
     }
 
-    this.homebridgeService = new Service.TemperatureSensor(this.name);
-    this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature)
+    this.homebridgeService = new Service.LightSensor(this.name);
+    this.homebridgeService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
         .setProps({
-                    minValue: -100,
-                    maxValue: 100
+                    minValue: MIN_LUX_VALUE,
+                    maxValue: MAX_LUX_VALUE
                 })
-        .on("get", this.getTemperature.bind(this));
+        .on("get", this.getSensorValue.bind(this));
 
     /** @namespace config.pullInterval */
     if (config.pullInterval) {
-        this.pullTimer = new PullTimer(log, config.pullInterval, this.getTemperature.bind(this), value => {
-            this.homebridgeService.setCharacteristic(Characteristic.CurrentTemperature, value);
+        this.pullTimer = new PullTimer(log, config.pullInterval, this.getSensorValue.bind(this), value => {
+            this.homebridgeService.setCharacteristic(Characteristic.CurrentAmbientLightLevel, value);
         });
         this.pullTimer.start();
     }
@@ -59,7 +83,7 @@ function HTTP_TEMPERATURE(log, config) {
     notifications.enqueueNotificationRegistrationIfDefined(api, log, config.notificationID, config.notificationPassword, this.handleNotification.bind(this));
 }
 
-HTTP_TEMPERATURE.prototype = {
+HttpAmbientLightSensor.prototype = {
 
     identify: function (callback) {
         this.log("Identify requested!");
@@ -70,10 +94,10 @@ HTTP_TEMPERATURE.prototype = {
         const informationService = new Service.AccessoryInformation();
 
         informationService
-            .setCharacteristic(Characteristic.Manufacturer, "Andreas Bauer")
-            .setCharacteristic(Characteristic.Model, "HTTP Temperature Sensor")
-            .setCharacteristic(Characteristic.SerialNumber, "TS01")
-            .setCharacteristic(Characteristic.FirmwareRevision, packageJSON.version);
+            .setCharacteristic(Characteristic.Manufacturer, MANUFACTURER)
+            .setCharacteristic(Characteristic.Model, MODEL)
+            .setCharacteristic(Characteristic.SerialNumber, SERIAL_NUMBER)
+            .setCharacteristic(Characteristic.FirmwareRevision, FIRMWARE_REVISION);
 
         return [informationService, this.homebridgeService];
     },
@@ -84,8 +108,8 @@ HTTP_TEMPERATURE.prototype = {
         /** @namespace body.characteristic */
         let characteristic;
         switch (body.characteristic) {
-            case "CurrentTemperature":
-                characteristic = Characteristic.CurrentTemperature;
+            case "CurrentAmbientLightLevel":
+                characteristic = Characteristic.CurrentAmbientLightLevel;
                 break;
             default:
                 this.log("Encountered unknown characteristic handling notification: " + body.characteristic);
@@ -97,25 +121,25 @@ HTTP_TEMPERATURE.prototype = {
         this.homebridgeService.setCharacteristic(characteristic, value);
     },
 
-    getTemperature: function (callback) {
+    getSensorValue: function (callback) {
         http.httpRequest(this.getUrl, (error, response, body) => {
             if (this.pullTimer)
                 this.pullTimer.resetTimer();
 
             if (error) {
-                this.log("getTemperature() failed: %s", error.message);
+                this.log("getSensorValue() failed: %s", error.message);
                 callback(error);
             }
             else if (response.statusCode !== 200) {
-                this.log("getTemperature() returned http error: %s", response.statusCode);
+                this.log("getSensorValue() returned http error: %s", response.statusCode);
                 callback(new Error("Got http error code " + response.statusCode));
             }
             else {
-                const temperature = parseFloat(body);
+                const sensorValue = parseFloat(body);
                 if (this.debug)
-                    this.log("Temperature is currently at %s", temperature);
+                    this.log("Sensor value is currently at %s", sensorValue);
 
-                callback(null, temperature);
+                callback(null, sensorValue);
             }
         });
     },
