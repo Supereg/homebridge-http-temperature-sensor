@@ -52,9 +52,9 @@ Both configs can be used for a basic plugin configuration.
     "accessories": [
         {
           "accessory": "HttpAmbientLightSensor",
-          "name": "Temperature Sensor",
+          "name": "Outdoor Light Sensor",
 
-          "getUrl": "http://localhost/api/getTemperature"
+          "getUrl": "http://localhost/api/lux"
         }   
     ]
 }
@@ -64,10 +64,10 @@ Both configs can be used for a basic plugin configuration.
     "accessories": [
         {
           "accessory": "HttpAmbientLightSensor",
-          "name": "Temperature Sensor",
+          "name": "Outdoor Light Sensor",
 
           "getUrl": {
-            "url": "http://localhost/api/getTemperature",
+            "url": "http://localhost/api/lux",
             "method": "GET"
           }
         }   
@@ -122,12 +122,12 @@ Down here is an example on how to configure `homebridge-http-ambient-light-senso
     "accessories": [
         {
           "accessory": "HttpAmbientLightSensor",
-          "name": "Temperature Sensor",
+          "name": "Outdoor Light Sensor",
 
-          "notificationID": "my-temperature-sensor",
+          "notificationID": "my-light-sensor",
           "notificationPassword": "superSecretPassword",
 
-          "getUrl": "http://localhost/api/getTemperature"
+          "getUrl": "http://localhost/api/lux"
         }   
     ]
 }
