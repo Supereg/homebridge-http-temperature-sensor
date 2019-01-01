@@ -143,4 +143,4 @@ To get more details about the configuration have a look at the
 
 Down here are all characteristics listed which can be updated with an request to the `homebridge-http-notification-server`
 
-* `characteristic` "CurrentAmbientLightLevel": expects an float `value` in a range of 0-100 (step 0.1)
+* `characteristic` "CurrentAmbientLightLevel": expects an float `value` in a range of 0.0 up to and including 65535.
