@@ -22,7 +22,7 @@ HomeKit controller of state changes.
 #### The 'pull' way:
 
 The 'pull' way is probably the easiest to set up and supported in every scenario. `homebridge-http-ambient-light-sensor`
-requests the temperature of the sensor in an specified interval (pulling) and sends the value to HomeKit.  
+requests the value of the sensor in an specified interval (pulling) and sends the value to HomeKit.  
 Look for `pullInterval` in the list of configuration options if you want to configure it.
 
 #### The 'push' way:
@@ -39,7 +39,7 @@ How to implement the protocol into your http device can be read in the chapter [
 The configuration can contain the following properties:
 * `name` \<string\> **required**: Defines the name which is later displayed in HomeKit
 * `getUrl` \<string |  [urlObject](#urlobject)\> **required**: Defines the url
-(and other properties when using an urlObject) to query the current temperature (in celsius) from the sensor.
+(and other properties when using an urlObject) to query the current value from the sensor.
 It currently expects the http server to return a float ranging from 0-100 (step 0.1) leaving out any html markup.
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
