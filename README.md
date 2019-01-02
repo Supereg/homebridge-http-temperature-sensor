@@ -6,6 +6,13 @@
 This [Homebridge](https://github.com/nfarina/homebridge) plugin can be used integrate your ambient light sensor which has a
 HTTP api into HomeKit.
 
+_This is a fork of Supereg's [omebridge-http-temperature-sensor](https://github.com/Supereg/homebridge-http-temperature-sensor) modified to function as an ambient light level sensor._
+
+### Changes with respect to original fork
+* Added min/max value configuration parameters
+* Minor refactoring (pull make/model from ```package.json```)
+
+
 ## Installation
 
 First of all you need to have [Homebridge](https://github.com/nfarina/homebridge) installed. Refer to the repo for
