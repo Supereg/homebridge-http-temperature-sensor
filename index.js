@@ -23,7 +23,7 @@ const MODEL = PACKAGE_JSON.name;
 const FIRMWARE_REVISION = PACKAGE_JSON.version;
 
 const MIN_LUX_VALUE = 0.0;
-const MAX_LUX_VALUE =  Math.pow(2, 16) - 1.0;
+const MAX_LUX_VALUE =  Math.pow(2, 16) - 1.0; // Default BH1750 max 16bit lux value.
 
 // -----------------------------------------------------------------------------
 // Exports
@@ -46,6 +46,8 @@ function HttpAmbientLightSensor(log, config) {
     this.log = log;
     this.name = config.name;
     this.debug = config.debug || false;
+    this.minSensorValue = config.minValue || MIN_LUX_VALUE;
+    this.maxSensorValue = config.maxValue || MAX_LUX_VALUE;
 
     if (config.getUrl) {
         try {
@@ -65,8 +67,8 @@ function HttpAmbientLightSensor(log, config) {
     this.homebridgeService = new Service.LightSensor(this.name);
     this.homebridgeService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
         .setProps({
-                    minValue: MIN_LUX_VALUE,
-                    maxValue: MAX_LUX_VALUE
+                    minValue: this.minSensorValue,
+                    maxValue: this.maxSensorValue
                 })
         .on("get", this.getSensorValue.bind(this));
 

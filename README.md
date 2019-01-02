@@ -46,7 +46,9 @@ The configuration can contain the following properties:
 It currently expects the http server to return a float ranging from 0-100 (step 0.1) leaving out any html markup.
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
-* `debug` \<boolean\> **optional**: Enable debug mode and write more logs.  
+* `debug` \<boolean\> **optional**: Enable debug mode and write more logs.
+* `minValue` \<float>\> **optional**: Minimum lux value the sensor can return. Defaults to BH1750 light sensor module value: 2^16 -1 = 65535.
+* `maxValue` \<float>\> **optional**: Maximum lux value the sensor can return. Default to 0.0.
 
 Below are two example configurations. One is using a simple string url and the other is using a simple urlObject.  
 Both configs can be used for a basic plugin configuration.
@@ -73,6 +75,24 @@ Both configs can be used for a basic plugin configuration.
             "url": "http://localhost/api/lux",
             "method": "GET"
           }
+        }   
+    ]
+}
+```
+
+Specifying a custom min and max value for an 8 bit sensor:
+
+```json
+{
+    "accessories": [
+        {
+          "accessory": "HttpAmbientLightSensor",
+          "name": "Outdoor Light Sensor",
+
+          "getUrl": "http://localhost/api/lux",
+
+          "minValue": 1.0,
+          "maxValue": 255
         }   
     ]
 }
