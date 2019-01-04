@@ -4,12 +4,11 @@
 
 # homebridge-http-ambient-light-sensor
 
-This [Homebridge](https://github.com/nfarina/homebridge) plugin can be used integrate your ambient light sensor which has a
-HTTP api into HomeKit.
+This [Homebridge](https://github.com/nfarina/homebridge) plugin can be used integrate your ambient light sensor which has a HTTP api into HomeKit. This sensor supports push notification without the need for HomeBridge to periodically pull the sensor value.
 
 _This is a fork of Supereg's [homebridge-http-temperature-sensor](https://github.com/Supereg/homebridge-http-temperature-sensor) modified to function as an ambient light level sensor._
 
-### Changes with respect to original fork
+### Changes in this fork with respect to original
 * Added min/max value configuration parameters
 * Minor refactoring (pull make/model from ```package.json```)
 
@@ -55,8 +54,8 @@ It currently expects the http server to return a float ranging from 0-100 (step 
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
 * `debug` \<boolean\> **optional**: Enable debug mode and write more logs.
-* `minValue` \<float>\> **optional**: Minimum lux value the sensor can return. Defaults to BH1750 light sensor module value: 2^16 -1 = 65535.
-* `maxValue` \<float>\> **optional**: Maximum lux value the sensor can return. Default to 0.0.
+* `minValue` \<float\> **optional**: Minimum lux value the sensor can return. Defaults to BH1750 light sensor module value: 2^16 -1 = 65535.
+* `maxValue` \<float\> **optional**: Maximum lux value the sensor can return. Default to 0.0.
 
 Below are two example configurations. One is using a simple string url and the other is using a simple urlObject.  
 Both configs can be used for a basic plugin configuration.
