@@ -1,4 +1,6 @@
-// ISC License - Copyright 2018, Sander van Woensel
+// ISC License
+// Original work Copyright (c) 2017, Andreas Bauer
+// Modified work Copyright 2018, Sander van Woensel
 
 "use strict";
 
