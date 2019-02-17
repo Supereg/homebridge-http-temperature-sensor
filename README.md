@@ -81,10 +81,18 @@ A urlObject can have the following properties:
 * `url` \<string\> **required**: Defines the url pointing to your http server
 * `method` \<string\> **optional** \(Default: **"GET"**\): Defines the http method used to make the http request
 * `body` \<string\> **optional**: Defines the body sent with the http request
-* `auth` \<object\> **optional**: If your http server uses basic authentication you can specify your credential in this 
-object. When defined the object must contain the following properties:
-    * `username` \<string\>
-    * `password` \<string\>
+* `strictSSL` \<boolean\> **optional** \(Default: **false**\): If enabled the SSL certificate used must be valid and 
+the whole certificate chain must be trusted. The default is false because most people will work with self signed 
+certificates in their homes and their devices are already authorized since being in their networks.
+* `auth` \<object\> **optional**: If your http server requires authentication you can specify your credential in this 
+object. When defined the object can contain the following properties:
+    * `username` \<string\> **required**
+    * `password` \<string\> **required**
+    * `sendImmediately` \<boolean\> **optional** \(Default: **true**\): When set to **true** the plugin will send the 
+            credentials immediately to the http server. This is best practice for basic authentication.  
+            When set to **false** the plugin will send the proper authentication header after receiving an 401 error code 
+            (unauthenticated). The response must include a proper `WWW-Authenticate` header.  
+            Digest authentication requires this property to be set to **false**!
 * `headers` \<object\> **optional**: Using this object you can define any http headers which are sent with the http 
 request. The object must contain only string key value pairs.  
   
@@ -94,6 +102,8 @@ Below is an example of an urlObject containing all properties:
   "url": "http://example.com:8080",
   "method": "GET",
   "body": "exampleBody",
+  
+  "strictSSL": false,
   
   "auth": {
     "username": "yourUsername",
