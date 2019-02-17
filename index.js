@@ -2,10 +2,14 @@
 
 let Service, Characteristic, api;
 
-const configParser = require("homebridge-http-base").configParser;
-const http = require("homebridge-http-base").http;
-const notifications = require("homebridge-http-base").notifications;
-const PullTimer = require("homebridge-http-base").PullTimer;
+const _http_base = require("homebridge-http-base");
+const http = _http_base.http;
+const configParser = _http_base.configParser;
+const PullTimer = _http_base.PullTimer;
+const notifications = _http_base.notifications;
+const MQTTClient = _http_base.MQTTClient;
+const Cache = _http_base.Cache;
+const utils = _http_base.utils;
 
 const packageJSON = require("./package.json");
 
@@ -17,6 +21,11 @@ module.exports = function (homebridge) {
 
     homebridge.registerAccessory("homebridge-http-temperature-sensor", "HTTP-TEMPERATURE", HTTP_TEMPERATURE);
 };
+
+const TemperatureUnit = Object.freeze({
+   Celsius: "celsius",
+   Fahrenheit: "fahrenheit"
+});
 
 function HTTP_TEMPERATURE(log, config) {
     this.log = log;
@@ -38,6 +47,28 @@ function HTTP_TEMPERATURE(log, config) {
         return;
     }
 
+    this.unit = utils.enumValueOf(TemperatureUnit, config.unit, TemperatureUnit.Celsius);
+    if (!this.unit) {
+        this.unit = TemperatureUnit.Celsius;
+        this.log.warn(`${config.unit} is an unsupported temperature unit! Using default!`);
+    }
+
+    this.statusCache = new Cache(config.statusCache, 0);
+    this.statusPattern = /(-?[0-9]{1,3}(\.[0-9]))/;
+    try {
+        if (config.statusPattern)
+            this.statusPattern = configParser.parsePattern(config.statusPattern);
+    } catch (error) {
+        this.log.warn("Property 'statusPattern' was given in an unsupported type. Using default one!");
+    }
+    this.patternGroupToExtract = 1;
+    if (config.patternGroupToExtract) {
+        if (typeof config.patternGroupToExtract === "number")
+            this.patternGroupToExtract = config.patternGroupToExtract;
+        else
+            this.log.warn("Property 'patternGroupToExtract' must be a number! Using default value!");
+    }
+
     this.homebridgeService = new Service.TemperatureSensor(this.name);
     this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature)
         .setProps({
@@ -57,6 +88,26 @@ function HTTP_TEMPERATURE(log, config) {
     /** @namespace config.notificationPassword */
     /** @namespace config.notificationID */
     notifications.enqueueNotificationRegistrationIfDefined(api, log, config.notificationID, config.notificationPassword, this.handleNotification.bind(this));
+
+    /** @namespace config.mqtt */
+    if (config.mqtt) {
+        let options;
+        try {
+            options = configParser.parseMQTTOptions(config.mqtt);
+        } catch (error) {
+            this.log.error("Error occurred while parsing MQTT property: " + error.message);
+            this.log.error("MQTT will not be enabled!");
+        }
+
+        if (options) {
+            try {
+                this.mqttClient = new MQTTClient(this.homebridgeService, options, this.log);
+                this.mqttClient.connect();
+            } catch (error) {
+                this.log.error("Error occurred creating MQTT client: " + error.message);
+            }
+        }
+    }
 }
 
 HTTP_TEMPERATURE.prototype = {
@@ -79,25 +130,30 @@ HTTP_TEMPERATURE.prototype = {
     },
 
     handleNotification: function(body) {
-        const value = body.value;
-
-        /** @namespace body.characteristic */
-        let characteristic;
-        switch (body.characteristic) {
-            case "CurrentTemperature":
-                characteristic = Characteristic.CurrentTemperature;
-                break;
-            default:
-                this.log("Encountered unknown characteristic handling notification: " + body.characteristic);
-                return;
+        if (!this.homebridgeService.testCharacteristic(body.characteristic)) {
+            this.log("Encountered unknown characteristic when handling notification (or characteristic which wasn't added to the service): " + body.characteristic);
+            return;
         }
+
+        let value = body.value;
+        if (body.characteristic === "CurrentTemperature" && this.unit === TemperatureUnit.Fahrenheit)
+            value = (value - 32) / 1.8;
 
         if (this.debug)
             this.log("Updating '" + body.characteristic + "' to new value: " + body.value);
-        this.homebridgeService.setCharacteristic(characteristic, value);
+        this.homebridgeService.setCharacteristic(body.characteristic, value);
     },
 
     getTemperature: function (callback) {
+        if (!this.statusCache.shouldQuery()) {
+            const value = this.homebridgeService.getCharacteristic(Characteristic.CurrentTemperature).value;
+            if (this.debug)
+                this.log(`getTemperature() returning cached value ${value}${this.statusCache.isInfinite()? " (infinite cache)": ""}`);
+
+            callback(null, value);
+            return;
+        }
+
         http.httpRequest(this.getUrl, (error, response, body) => {
             if (this.pullTimer)
                 this.pullTimer.resetTimer();
@@ -111,10 +167,22 @@ HTTP_TEMPERATURE.prototype = {
                 callback(new Error("Got http error code " + response.statusCode));
             }
             else {
-                const temperature = parseFloat(body);
+                let temperature;
+                try {
+                    temperature = utils.extractValueFromPattern(this.statusPattern, body, this.patternGroupToExtract);
+                } catch (error) {
+                    this.log("getTemperature() error occurred while extracting temperature from body: " + error.message);
+                    callback(new Error("pattern error"));
+                    return;
+                }
+
+                if (this.unit === TemperatureUnit.Fahrenheit)
+                    temperature = (temperature - 32) / 1.8;
+
                 if (this.debug)
                     this.log("Temperature is currently at %s", temperature);
 
+                this.statusCache.queried();
                 callback(null, temperature);
             }
         });
