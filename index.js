@@ -165,7 +165,7 @@ HTTP_TEMPERATURE.prototype = {
                 this.log("getTemperature() failed: %s", error.message);
                 callback(error);
             }
-            else if (response.statusCode !== 200) {
+            else if (!http.isHttpSuccessCode(response.statusCode)) {
                 this.log("getTemperature() returned http error: %s", response.statusCode);
                 callback(new Error("Got http error code " + response.statusCode));
             }
