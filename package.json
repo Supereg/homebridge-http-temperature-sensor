@@ -1,6 +1,6 @@
 {
   "name": "homebridge-http-temperature-sensor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Http temperature sensor for Homebridge",
   "license": "ISC",
   "keywords": [
