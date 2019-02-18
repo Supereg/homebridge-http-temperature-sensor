@@ -118,6 +118,9 @@ HTTP_TEMPERATURE.prototype = {
     },
 
     getServices: function () {
+        if (!this.homebridgeService)
+            return [];
+
         const informationService = new Service.AccessoryInformation();
 
         informationService
