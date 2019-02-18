@@ -15,7 +15,7 @@ sudo npm install -g homebridge-http-temperature-sensor
 
 ## Updating the temperature in HomeKit
 
-The _'CurrentTemperature'_ service has the permission to `notify` the HomeKit controller of state 
+The _'CurrentTemperature'_ characteristic has the permission to `notify` the HomeKit controller of state 
 changes. `homebridge-http-temperature-sensor` supports two concepts to send temperature changes to HomeKit.
 
 ### The 'pull' way:
@@ -197,7 +197,7 @@ A mqttObject can have the following properties:
 
 **Note:** Updating values over mqtt is currently only supported for the default unit (celsius).
 
-Below is an example of an mqttObject containing the basic properties for an temperature service:
+Below is an example of an mqttObject containing the basic properties for a temperature service:
 ```json
 {
   "host": "127.0.0.1",
@@ -212,7 +212,7 @@ Below is an example of an mqttObject containing the basic properties for an temp
     {
       "topic": "your/topic/here",
       "characteristic": "CurrentTemperature",
-      "messagePattern": "(-?[0-9]{1,3})"
+      "messagePattern": "(-?[0-9]{1,3}(\\.[0-9]))"
     }
   ]
 }
