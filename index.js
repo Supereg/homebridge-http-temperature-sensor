@@ -54,7 +54,7 @@ function HTTP_TEMPERATURE(log, config) {
     }
 
     this.statusCache = new Cache(config.statusCache, 0);
-    this.statusPattern = /(-?[0-9]{1,3}(\.[0-9]))/;
+    this.statusPattern = /(-?[0-9]{1,3}(\.[0-9])?)/;
     try {
         if (config.statusPattern)
             this.statusPattern = configParser.parsePattern(config.statusPattern);
