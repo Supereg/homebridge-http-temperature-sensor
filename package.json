@@ -6,6 +6,9 @@
   "keywords": [
     "homebridge-plugin"
   ],
+  "scripts": {
+    "test": "echo no test specified"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Supereg/homebridge-http-temperature-sensor"
