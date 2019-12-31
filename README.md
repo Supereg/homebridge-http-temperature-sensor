@@ -51,6 +51,7 @@ The configuration can contain the following properties:
 * `getUrl` \<string |  [urlObject](#urlobject)\> **required**: Defines the url
 (and other properties when using an urlObject) to query the current value from the sensor.
 It currently expects the http server to return a float ranging from 0-100 (step 0.1) leaving out any html markup.
+* `identifyUrl` \<string |  [urlObject](#urlobject)\> **optional**: URL to call when the HomeKit identify action is requested.
 * `pullInterval` \<integer\> **optional**: The property expects an interval in **milliseconds** in which the plugin
 pulls updates from your http device. For more information read [pulling updates](#the-pull-way).  
 * `debug` \<boolean\> **optional**: Enable debug mode and write more logs.

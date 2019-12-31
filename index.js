@@ -66,6 +66,17 @@ function HttpAmbientLightSensor(log, config) {
         return;
     }
 
+
+    if(config.identifyUrl) {
+        try {
+            this.identifyUrl = configParser.parseUrlProperty(config.identifyUrl);
+        } catch (error) {
+            this.log.warn("Error occurred while parsing 'identifyUrl': " + error.message);
+            this.log.warn("Aborting...");
+            return;
+        }
+    }
+
     this.homebridgeService = new Service.LightSensor(this.name);
     this.homebridgeService.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
         .setProps({
@@ -90,8 +101,28 @@ function HttpAmbientLightSensor(log, config) {
 HttpAmbientLightSensor.prototype = {
 
     identify: function (callback) {
-        this.log("Identify requested!");
-        callback();
+      this.log("Identify requested!");
+
+      if (this.identifyUrl) {
+         http.httpRequest(this.identifyUrl, (error, response, body) => {
+
+             if (error) {
+                this.log("identify() failed: %s", error.message);
+                callback(error);
+             }
+             else if (response.statusCode !== 200) {
+                this.log("identify() returned http error: %s", response.statusCode);
+                callback(new Error("Got http error code " + response.statusCode));
+             }
+             else {
+                callback(null);
+             }
+         });
+      }
+      else {
+         callback(null);
+      }
+
     },
 
     getServices: function () {
