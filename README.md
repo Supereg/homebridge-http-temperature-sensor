@@ -66,11 +66,11 @@ The configuration can contain the following properties:
 
 ##### Advanced configuration options:
 
-* `statusPattern` \<string\> **optional** \(Default: **"/(-?[0-9]{1,3}(\.[0-9]))/"**): Defines a regex pattern with which the 
+* `statusPattern` \<string\> **optional** \(Default: **"(-?[0-9]{1,3}(\.[0-9]))"**): Defines a regex pattern with which the 
     temperature is extracted from the body of the http response from the `getUrl`. The group which should
     be extracted can be configured with the `patternGroupToExtract` property.  
     [More about regex pattern](https://www.w3schools.com/jsref/jsref_obj_regexp.asp).
-* `patternGroupToExtract` <\number\> **optional** \(Default: **1**\): Defines the regex group of which the temperature 
+* `patternGroupToExtract` \<number\> **optional** \(Default: **1**\): Defines the regex group of which the temperature 
     is extracted.
 * `statusCache` \<number\> **optional** \(Default: **0**\): Defines the amount of time in milliseconds a queried value 
    of the _CurrentTemperature_ characteristic is cached before a new request is made to the http device.  
