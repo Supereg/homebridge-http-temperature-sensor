@@ -84,7 +84,6 @@ function HttpAmbientLightSensor(log, config) {
                 })
         .on("get", this.getSensorValue.bind(this));
 
-    /** @namespace config.pullInterval */
     if (config.pullInterval) {
         this.pullTimer = new PullTimer(log, config.pullInterval, this.getSensorValue.bind(this), value => {
             this.homebridgeService.setCharacteristic(Characteristic.CurrentAmbientLightLevel, value);
@@ -151,7 +150,6 @@ HttpAmbientLightSensor.prototype = {
     handleNotification: function(body) {
         const value = body.value;
 
-        /** @namespace body.characteristic */
         let characteristic;
         switch (body.characteristic) {
             case "CurrentAmbientLightLevel":
