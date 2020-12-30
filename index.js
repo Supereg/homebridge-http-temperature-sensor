@@ -15,7 +15,6 @@ let Service, Characteristic, api;
 
 const configParser = require("homebridge-http-base").configParser;
 const http = require("homebridge-http-base").http;
-const notifications = require("homebridge-http-base").notifications;
 const PullTimer = require("homebridge-http-base").PullTimer;
 
 const PACKAGE_JSON = require('./package.json');
@@ -93,9 +92,21 @@ function HttpAmbientLightSensor(log, config) {
         this.pullTimer.start();
     }
 
-    /** @namespace config.notificationPassword */
-    /** @namespace config.notificationID */
-    notifications.enqueueNotificationRegistrationIfDefined(api, log, config.notificationID, config.notificationPassword, this.handleNotification.bind(this));
+    // Register notification server.
+    api.on('didFinishLaunching', function() {
+        // Check if notificationRegistration is set and user specified notificationID.
+        // if not 'notificationRegistration' is probably not installed on the system.
+        if (global.notificationRegistration && typeof global.notificationRegistration === "function" &&
+            config.notificationID) {
+            try {
+            global.notificationRegistration(config.notificationID, this.handleNotification.bind(this), config.notificationPassword);
+
+            } catch (error) {
+                // notificationID is already taken.
+            }
+        }
+    }.bind(this));
+
 }
 
 HttpAmbientLightSensor.prototype = {
