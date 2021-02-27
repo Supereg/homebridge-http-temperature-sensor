@@ -46,7 +46,6 @@ module.exports = function (homebridge) {
 function HttpAmbientLightSensor(log, config) {
     this.log = log;
     this.name = config.name;
-    this.debug = config.debug || false;
     this.minSensorValue = config.minValue || MIN_LUX_VALUE;
     this.maxSensorValue = config.maxValue || MAX_LUX_VALUE;
 
@@ -54,14 +53,14 @@ function HttpAmbientLightSensor(log, config) {
         try {
             this.getUrl = configParser.parseUrlProperty(config.getUrl);
         } catch (error) {
-            this.log.warn("Error occurred while parsing 'getUrl': " + error.message);
-            this.log.warn("Aborting...");
+            this.log.error("Error occurred while parsing 'getUrl': " + error.message);
+            this.log.error("Aborting...");
             return;
         }
     }
     else {
-        this.log.warn("Property 'getUrl' is required!");
-        this.log.warn("Aborting...");
+        this.log.error("Property 'getUrl' is required!");
+        this.log.error("Aborting...");
         return;
     }
 
@@ -70,8 +69,8 @@ function HttpAmbientLightSensor(log, config) {
         try {
             this.identifyUrl = configParser.parseUrlProperty(config.identifyUrl);
         } catch (error) {
-            this.log.warn("Error occurred while parsing 'identifyUrl': " + error.message);
-            this.log.warn("Aborting...");
+            this.log.error("Error occurred while parsing 'identifyUrl': " + error.message);
+            this.log.error("Aborting...");
             return;
         }
     }
@@ -111,17 +110,17 @@ function HttpAmbientLightSensor(log, config) {
 HttpAmbientLightSensor.prototype = {
 
     identify: function (callback) {
-      this.log("Identify requested!");
+      this.log.info("Identify requested");
 
       if (this.identifyUrl) {
          http.httpRequest(this.identifyUrl, (error, response, body) => {
 
              if (error) {
-                this.log("identify() failed: %s", error.message);
+                this.log.error("identify() failed: %s", error.message);
                 callback(error);
              }
              else if (response.statusCode !== 200) {
-                this.log("identify() returned http error: %s", response.statusCode);
+                this.log.error("identify() returned http error: %s", response.statusCode);
                 callback(new Error("Got http error code " + response.statusCode));
              }
              else {
@@ -156,12 +155,11 @@ HttpAmbientLightSensor.prototype = {
                 characteristic = Characteristic.CurrentAmbientLightLevel;
                 break;
             default:
-                this.log("Encountered unknown characteristic handling notification: " + body.characteristic);
+                this.log.warn("Encountered unknown characteristic handling notification: " + body.characteristic);
                 return;
         }
+        this.log.debug("Update received from device: " + body.characteristic + ": " + body.value);
 
-        if (this.debug)
-            this.log("Updating '" + body.characteristic + "' to new value: " + body.value);
         this.homebridgeService.setCharacteristic(characteristic, value);
     },
 
@@ -171,17 +169,16 @@ HttpAmbientLightSensor.prototype = {
                 this.pullTimer.resetTimer();
 
             if (error) {
-                this.log("getSensorValue() failed: %s", error.message);
+                this.log.error("getSensorValue() failed: %s", error.message);
                 callback(error);
             }
             else if (response.statusCode !== 200) {
-                this.log("getSensorValue() returned http error: %s", response.statusCode);
+                this.log.error("getSensorValue() returned http error: %s", response.statusCode);
                 callback(new Error("Got http error code " + response.statusCode));
             }
             else {
                 const sensorValue = parseFloat(body);
-                if (this.debug)
-                    this.log("Sensor value is currently at %s", sensorValue);
+                this.log.info("Get sensor value: %s", sensorValue);
 
                 callback(null, sensorValue);
             }
